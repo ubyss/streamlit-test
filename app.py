@@ -134,38 +134,42 @@ st.markdown('<hr class="soft" />', unsafe_allow_html=True)
 # =========================
 # SIDEBAR (PAINEL)
 # =========================
+
+def classify_current_sample(model, scaler):
+    if not (model and scaler):
+        st.warning("Modelo ou scaler indisponível.")
+        return
+    current_data = [st.session_state.get(f, 0.0) for f in FEATURES]
+    sample_df = pd.DataFrame([current_data], columns=FEATURES)
+    scaled_sample = scaler.transform(sample_df)
+    with st.spinner("Executando predição..."):
+        time.sleep(0.3)
+        prediction_proba = float(model.predict(scaled_sample, verbose=0)[0][0])
+    st.session_state['last_prediction'] = prediction_proba
+    st.toast("Classificação concluída.", icon="🔬")
+
+
 with st.sidebar:
     st.header("Painel de Controle")
     st.caption("Gere dados e execute a predição.")
 
-    st.subheader("1) Geração de Dados")
+    st.subheader("Geração de Dados")
     col_g1, col_g2 = st.columns(2)
     with col_g1:
         if st.button("🧬 Amostra Benigna (B)", use_container_width=True, disabled=stats is None):
             generate_synthetic_data('B', stats)
             st.toast("Amostra benigna gerada.", icon="✅")
+            classify_current_sample(model, scaler) 
     with col_g2:
         if st.button("☣️ Amostra Maligna (M)", use_container_width=True, disabled=stats is None):
             generate_synthetic_data('M', stats)
             st.toast("Amostra maligna gerada.", icon="☣️")
+            classify_current_sample(model, scaler) 
 
     if st.button("🎲 Amostra Aleatória", use_container_width=True, disabled=stats is None):
         generate_synthetic_data('A', stats)
         st.toast("Amostra aleatória gerada.", icon="🎲")
-
-    st.divider()
-
-    st.subheader("2) Classificação")
-    if st.button("🔎 Classificar Amostra", type="primary", use_container_width=True, disabled=not (model and scaler)):
-        if model and scaler:
-            current_data = [st.session_state.get(f, 0.0) for f in FEATURES]
-            sample_df = pd.DataFrame([current_data], columns=FEATURES)
-            scaled_sample = scaler.transform(sample_df)
-            with st.spinner("Executando predição..."):
-                time.sleep(0.3)
-                prediction_proba = float(model.predict(scaled_sample, verbose=0)[0][0])
-            st.session_state['last_prediction'] = prediction_proba
-            st.toast("Classificação concluída.", icon="🔬")
+        classify_current_sample(model, scaler)     
 
 # =========================
 # CONTEÚDO PRINCIPAL
