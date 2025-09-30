@@ -229,24 +229,23 @@ if model and scaler and stats:
         st.markdown('<div class="app-card">', unsafe_allow_html=True)
         st.subheader("Ajustar Valores da Amostra")
 
-        # Inputs agrupados por categoria, 3 colunas por grupo
         for group_name, group_features in GROUPS.items():
             st.markdown(f"**{group_name}**")
             cols = st.columns(3)
             for i, feature in enumerate(group_features):
                 with cols[i % 3]:
-                    # valor padrão seguro
                     default_val = float(st.session_state.get(feature, 0.0))
-                    st.session_state[feature] = st.number_input(
+                    # use a MESMA key que você usa ao gerar os dados
+                    _ = st.number_input(
                         label=feature.replace('_', ' ').title(),
                         value=default_val,
-                        key=f"input_{feature}",
+                        key=feature,                # <<< chave unificada
                         format="%.4f",
                         help="Ajuste fino do feature."
                     )
             st.markdown('<hr class="soft" />', unsafe_allow_html=True)
 
-        st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
     # --- Estatísticas
     with tab_stats:
